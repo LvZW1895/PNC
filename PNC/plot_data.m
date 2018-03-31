@@ -1,0 +1,12 @@
+clear;
+data1=textread('pnc_result.txt');
+data2=textread('comp_result.txt');
+X1=data1(:,1);
+Y1=data1(:,2);
+X2=data2(:,1);
+Y2=data2(:,2);
+semilogy(X1,Y1,'-ob');
+hold on;
+semilogy(X2,Y2,'-^r');
+axis([0,10,0,1]);
+grid on;
