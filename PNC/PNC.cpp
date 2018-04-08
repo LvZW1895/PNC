@@ -7,26 +7,44 @@
 #include "Demapping.h"
 int main()
 {
+	srand((unsigned int)time(NULL));
 	ofstream log;
 	int type =CoMP;
 	int modtype = QPSK;
+	/*switch (type)
+	{
+	case CoMP:
+		log.open("comp_result_throughput.txt", ios::trunc | ios::out);
+		break;
+	case PNC:
+		log.open("pnc_result_throughput.txt", ios::trunc | ios::out);
+		break;
+	case nidealCoMP:
+		log.open("nicomp_result_throughput.txt", ios::trunc | ios::out);
+		break;
+	default:
+		break;
+	}*/
+	
 	switch (type)
 	{
 	case CoMP:
-		log.open("comp_result.txt", ios::trunc | ios::out);
+		log.open("comp_result_ber.txt", ios::trunc | ios::out);
 		break;
 	case PNC:
-		log.open("pnc_result.txt", ios::trunc | ios::out);
+		log.open("pnc_result_ber.txt", ios::trunc | ios::out);
 		break;
 	default:
 		break;
 	}
-	
-	int block_num = 100;
-	int msg_len = 10000;
+	double relaytime=4.0;
+	double frametime = 1.0;
+	int block_num = 10000;
+	int msg_len = 100;
 	double Es = 1;
 	int total_bit = 0;
 	int error = 0;
+	int recivebit = 0;
 	Modulation mod;
 	Channel channel;
 	Demapping dp;
@@ -46,12 +64,28 @@ int main()
 	A << 1, 1,
 		0, 1;
 	cout << "#EsN0dB       #err         SER" << endl;
+	//cout << "#EsN0dB       #err         THROUGHPUT" << endl;
 	//cout << sigma << endl;
 	//log << "#EsN0dB     SER" << endl;
+	switch (type)
+	{
+	case CoMP:
+		relaytime = 0;
+		break;
+	case PNC:
+		relaytime = 2.0;
+		break;
+	case nidealCoMP:
+		relaytime = 4.0;
+		break;
+	default:
+		break;
+	}
 	for (int k = 0; k < EsN0dB.size(); k++)
 	{
 		error = 0;
 		total_bit = 0;
+		recivebit = 0;
 		for (int i = 0; i < block_num; i++)
 		{
 			//======================================
@@ -92,7 +126,7 @@ int main()
 			// PNC Demapping
 			//======================================
 			MatrixXd res;
-			if (type == CoMP)
+			if (type == CoMP||type==nidealCoMP)
 			{
 				switch (modtype)
 				{
@@ -140,12 +174,14 @@ int main()
 					error++;
 			}
 			total_bit += 2 * msg_len;
+			recivebit = total_bit - error;
 			//cout << "--------------" << endl;
 			//cout << error << endl;
-		}
-
+		}		
 		std::printf(" %3i        %6i      %1.3e\n", EsN0dB(k), error, ((double)error) / total_bit);
 		log << EsN0dB(k)<<"        " << ((double)error) / total_bit << endl;
+		//std::printf(" %3i        %6i      %1.3e\n", EsN0dB(k), error, ((double)recivebit) / (frametime+relaytime)/ block_num);
+		//log << EsN0dB(k) << "        " << ((double)recivebit) / (frametime + relaytime)/ block_num << endl;
 	}
 	log.close();
 	

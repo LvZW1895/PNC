@@ -14,12 +14,14 @@
 #include <limits.h>
 #include <fstream>
 #include <complex>
+#include <time.h>
 
 using namespace Eigen;
 using namespace std;
 
 #define CoMP  0
 #define PNC 1
+#define nidealCoMP 2
 #define BPSK 0
 #define QPSK 1
 #define		MAX_VALUE		9e100

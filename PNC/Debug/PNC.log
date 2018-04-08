@@ -1,10 +1,3 @@
-﻿  stdafx.cpp
-  PNC.cpp
-  Modulation.cpp
-e:\笔记本资料\仿真平台\pnc\pnc\modulation.cpp(38): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
-e:\笔记本资料\仿真平台\pnc\pnc\modulation.cpp(39): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
-  Demapping.cpp
-  Channel.cpp
-  正在生成代码...
+﻿  PNC.cpp
   PNC.vcxproj -> E:\笔记本资料\仿真平台\PNC\Debug\PNC.exe
   PNC.vcxproj -> E:\笔记本资料\仿真平台\PNC\Debug\PNC.pdb (Full PDB)
