@@ -152,6 +152,7 @@
     <ClInclude Include="Channel.h" />
     <ClInclude Include="Demapping.h" />
     <ClInclude Include="Modulation.h" />
+    <ClInclude Include="Quantizer.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -160,6 +161,7 @@
     <ClCompile Include="Demapping.cpp" />
     <ClCompile Include="Modulation.cpp" />
     <ClCompile Include="PNC.cpp" />
+    <ClCompile Include="Quantizer.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

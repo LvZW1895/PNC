@@ -5,11 +5,12 @@
 #include "Modulation.h"
 #include "Channel.h"
 #include "Demapping.h"
+#include "Quantizer.h"
 int main()
 {
-	srand((unsigned int)time(NULL));
+	//srand((unsigned int)time(NULL));
 	ofstream log;
-	int type =CoMP;
+	int type =nidealCoMP;
 	int modtype = QPSK;
 	/*switch (type)
 	{
@@ -26,17 +27,6 @@ int main()
 		break;
 	}*/
 	
-	switch (type)
-	{
-	case CoMP:
-		log.open("comp_result_ber.txt", ios::trunc | ios::out);
-		break;
-	case PNC:
-		log.open("pnc_result_ber.txt", ios::trunc | ios::out);
-		break;
-	default:
-		break;
-	}
 	double relaytime=4.0;
 	double frametime = 1.0;
 	int block_num = 10000;
@@ -45,8 +35,10 @@ int main()
 	int total_bit = 0;
 	int error = 0;
 	int recivebit = 0;
+	int qtbits = 4;
 	Modulation mod;
 	Channel channel;
+	Quantizer qt;
 	Demapping dp;
 	VectorXi EsN0dB=VectorXi::LinSpaced(21,0,20);
 	VectorXd EsN0(21);
@@ -64,6 +56,22 @@ int main()
 	A << 1, 1,
 		0, 1;
 	cout << "#EsN0dB       #err         SER" << endl;
+	ostringstream oss;
+	oss << "nidealcomp_result" << qtbits << "_ber.txt";
+	switch (type)
+	{
+	case CoMP:
+		log.open("comp_result_ber.txt", ios::trunc | ios::out);
+		break;
+	case nidealCoMP:
+		log.open(oss.str(), ios::trunc | ios::out);
+		break;
+	case PNC:
+		log.open("pnc_result_ber.txt", ios::trunc | ios::out);
+		break;
+	default:
+		break;
+	}
 	//cout << "#EsN0dB       #err         THROUGHPUT" << endl;
 	//cout << sigma << endl;
 	//log << "#EsN0dB     SER" << endl;
@@ -115,9 +123,6 @@ int main()
 			default:
 				break;
 			}
-			//cout << msg_u1 << endl;
-			//cout << "--------------" << endl;
-			//cout << cv_txsig_u1 << endl;
 			//======================================
 			// Channel
 			//======================================
@@ -125,8 +130,10 @@ int main()
 			//======================================
 			// PNC Demapping
 			//======================================
+			
 			MatrixXd res;
-			if (type == CoMP||type==nidealCoMP)
+			Matrix<complex<double>, Dynamic, Dynamic> qt_rx;
+			if (type == CoMP)
 			{
 				switch (modtype)
 				{
@@ -141,6 +148,21 @@ int main()
 				}
 				
 			}
+			else if (type == nidealCoMP)
+			{
+				switch (modtype)
+				{
+				case BPSK:
+					//res = dp.dp_pnc_bpsk(Rx_sig);
+					break;
+				case QPSK:
+					qt_rx= qt.quantize(Rx_sig,qtbits,2.0,-2.0);
+					res = dp.dp_comp_qpsk(qt_rx, A);
+					break;
+				default:
+					break;
+				}
+			}
 			else if (type == PNC)
 			{
 				switch (modtype)
@@ -150,6 +172,7 @@ int main()
 					break;
 				case QPSK:
 					  res = dp.dp_pnc_qpsk(Rx_sig);
+					  break;
 				default:
 					break;
 				}
@@ -169,9 +192,14 @@ int main()
 			for (int j = 0; j < res_u1.size(); j++)
 			{
 				if (res_u1(j) != msg_u1(j))
+				{
 					error++;
+				}		
 				if (res_u2(j) != msg_u2(j))
+				{
 					error++;
+				}
+					
 			}
 			total_bit += 2 * msg_len;
 			recivebit = total_bit - error;

@@ -120,6 +120,10 @@ MatrixXd Demapping::dp_comp_qpsk(Matrix<complex<double>, Dynamic, Dynamic> Rx_si
 				+ pow(a1.imag() - res_tmp(0, j).imag(), 2)
 				+ pow(a2.real() - res_tmp(1, j).real(), 2)
 				+ pow(a2.imag() - res_tmp(1, j).imag(), 2);
+			/*double dis = abs(a1.real() - res_tmp(0, j).real())
+				+ abs(a1.imag() - res_tmp(0, j).imag())
+				+ abs(a2.real() - res_tmp(1, j).real())
+				+ abs(a2.imag() - res_tmp(1, j).imag());*/
 			if (dis < min)
 			{
 				min = dis;
