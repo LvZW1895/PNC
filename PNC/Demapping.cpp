@@ -90,7 +90,7 @@ MatrixXi Demapping::dp_comp_bpsk(MatrixXd Rx_sig, MatrixXi A)
 	return res;
 }
 
-MatrixXd Demapping::dp_comp_qpsk(Matrix<complex<double>, Dynamic, Dynamic> Rx_sig, MatrixXi A)
+MatrixXd Demapping::dp_comp_qpsk(Matrix<complex<double>, Dynamic, Dynamic> Rx_sig, Matrix<complex<double>, Dynamic, Dynamic> A)
 {
 	MatrixXd res(Rx_sig.rows()*2, 2);
 	MatrixXd bit(4, 16);
@@ -104,10 +104,10 @@ MatrixXd Demapping::dp_comp_qpsk(Matrix<complex<double>, Dynamic, Dynamic> Rx_si
 	bit_bpsk << c1, c1, c1, c1, c2, c2, c2, c2, c3, c3, c3, c3, c4, c4, c4, c4,
 		        c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4;
 
-	Matrix<complex<double>, Dynamic, Dynamic> A_temp(2, 2);
+	/*Matrix<complex<double>, Dynamic, Dynamic> A_temp(2, 2);
 	A_temp << A(0, 0), A(0, 1),
-		      A(1, 0), A(1, 1);
-	Matrix<complex<double>, Dynamic, Dynamic> res_tmp = A_temp*bit_bpsk;
+		      A(1, 0), A(1, 1);*/
+	Matrix<complex<double>, Dynamic, Dynamic> res_tmp = A*bit_bpsk;
 	//cout << res_tmp << endl;
 	for (int i = 0; i < Rx_sig.rows(); i++)
 	{
@@ -203,3 +203,474 @@ MatrixXd Demapping::dp_pnc_qpsk(Matrix<complex<double>, Dynamic, Dynamic> Rx_sig
 	return res;
 
 }
+
+//MatrixXd Demapping::dp_llr_qpsk(Matrix<complex<double>, Dynamic, Dynamic> Rx_sig, Matrix<complex<double>, Dynamic, Dynamic> A,double sigma,int bits)
+//{
+//	MatrixXd res(Rx_sig.rows() * 2, 2);
+//	MatrixXd llr1(Rx_sig.rows() * 2, 2),llr2(Rx_sig.rows() * 2, 2),llr(Rx_sig.rows() * 2, 2);
+//	Matrix<complex<double>, Dynamic, Dynamic> bit11_qpsk(2, 16), bit12_qpsk(2, 16), bit21_qpsk(2, 16), bit22_qpsk(2, 16);
+//	complex<double> c1(-1, -1), c2(-1, 1), c3(1, -1), c4(1, 1);
+//	bit11_qpsk << c1, c1, c1, c1, c2, c2, c2, c2, c3, c3, c3, c3, c4, c4, c4, c4,
+//		          c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4;
+//	bit12_qpsk << c1, c1, c1, c1, c3, c3, c3, c3, c2, c2, c2, c2, c4, c4, c4, c4,
+//		          c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4;
+//	bit21_qpsk << c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4,
+//		          c1, c1, c1, c1, c2, c2, c2, c2, c3, c3, c3, c3, c4, c4, c4, c4;
+//	bit22_qpsk << c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4,
+//		          c1, c1, c1, c1, c3, c3, c3, c3, c2, c2, c2, c2, c4, c4, c4, c4;
+//	Matrix<complex<double>, Dynamic, Dynamic> res_tmp11 = A*bit11_qpsk;
+//	Matrix<complex<double>, Dynamic, Dynamic> res_tmp12 = A*bit12_qpsk;
+//	Matrix<complex<double>, Dynamic, Dynamic> res_tmp21 = A*bit21_qpsk;
+//	Matrix<complex<double>, Dynamic, Dynamic> res_tmp22 = A*bit22_qpsk;
+//	for (int i = 0; i < Rx_sig.rows(); i++)
+//	{
+//		complex<double> a1 = Rx_sig(i, 0);
+//		complex<double> a2 = Rx_sig(i, 1);
+//		//==========
+//		//LLR1
+//		//==========
+//		/*double sum1 = 0, sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1/pow(sigma,2)*abs(pow(a1.real() - res_tmp11(0, j).real(), 2) + pow(a1.imag() - res_tmp11(0, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a1.real() - res_tmp11(0, j).real(), 2) + pow(a1.imag() - res_tmp11(0, j).imag(), 2)));
+//		}
+//		llr1(2 * i, 0) = log(sum1/sum0);
+//		sum1 = 0;
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a1.real() - res_tmp12(0, j).real(), 2) + pow(a1.imag() - res_tmp12(0, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a1.real() - res_tmp12(0, j).real(), 2) + pow(a1.imag() - res_tmp12(0, j).imag(), 2)));
+//		}
+//		llr1(2 * i + 1, 0) = log(sum1 / sum0);
+//		sum1 = 0;
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a1.real() - res_tmp21(0, j).real(), 2) + pow(a1.imag() - res_tmp21(0, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a1.real() - res_tmp21(0, j).real(), 2) + pow(a1.imag() - res_tmp21(0, j).imag(), 2)));
+//		}
+//		llr1(2 * i , 1) = log(sum1 / sum0);
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a1.real() - res_tmp22(0, j).real(), 2) + pow(a1.imag() - res_tmp22(0, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a1.real() - res_tmp22(0, j).real(), 2) + pow(a1.imag() - res_tmp22(0, j).imag(), 2)));
+//		}
+//		llr1(2 * i + 1, 1) = log(sum1 / sum0);*/
+//		double sum1 = 0, sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a1.real() - res_tmp11(0, j).real(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a1.real() - res_tmp11(0, j).real(), 2)));
+//		}
+//		llr1(2 * i, 0) = log(sum1 / sum0);
+//		sum1 = 0;
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a1.imag() - res_tmp12(0, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a1.imag() - res_tmp12(0, j).imag(), 2)));
+//		}
+//		llr1(2 * i + 1, 0) = log(sum1 / sum0);
+//		sum1 = 0;
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a1.real() - res_tmp21(0, j).real(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a1.real() - res_tmp21(0, j).real(), 2)));
+//		}
+//		llr1(2 * i, 1) = log(sum1 / sum0);
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a1.imag() - res_tmp22(0, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a1.imag() - res_tmp22(0, j).imag(), 2)));
+//		}
+//		llr1(2 * i + 1, 1) = log(sum1 / sum0);
+//		//======
+//		//LLR2
+//		//======
+//		sum1 = 0, sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp11(1, j).real(), 2) + pow(a2.imag() - res_tmp11(1, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp11(1, j).real(), 2) + pow(a2.imag() - res_tmp11(1, j).imag(), 2)));
+//		}
+//		llr2(2 * i, 0) = log(sum1 / sum0);
+//		sum1 = 0;
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp12(1, j).real(), 2) + pow(a2.imag() - res_tmp12(1, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp12(1, j).real(), 2) + pow(a2.imag() - res_tmp12(1, j).imag(), 2)));
+//		}
+//		llr2(2 * i + 1, 0) = log(sum1 / sum0);
+//		sum1 = 0;
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp21(1, j).real(), 2) + pow(a2.imag() - res_tmp21(1, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp21(1, j).real(), 2) + pow(a2.imag() - res_tmp21(1, j).imag(), 2)));
+//		}
+//		llr2(2 * i, 1) = log(sum1 / sum0);
+//		sum1 = 0;
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp22(1, j).real(), 2) + pow(a2.imag() - res_tmp22(0, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp22(1, j).real(), 2) + pow(a2.imag() - res_tmp22(0, j).imag(), 2)));
+//		}
+//		llr2(2 * i + 1, 1) = log(sum1 / sum0);
+//
+//	}
+//	
+//		/*sum1 = 0, sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp11(1, j).real(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp11(1, j).real(), 2)));
+//		}
+//		llr2(2 * i, 0) = log(sum1 / sum0);
+//		sum1 = 0;
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a2.imag() - res_tmp12(1, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a2.imag() - res_tmp12(1, j).imag(), 2)));
+//		}
+//		llr2(2 * i + 1, 0) = log(sum1 / sum0);
+//		sum1 = 0;
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp21(1, j).real(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a2.real() - res_tmp21(1, j).real(), 2)));
+//		}
+//		llr2(2 * i, 1) = log(sum1 / sum0);
+//		sum1 = 0;
+//		sum0 = 0;
+//		for (int j = 0; j < 8; j++)
+//		{
+//			sum0 += exp(-1 / pow(sigma, 2)*abs(pow(a2.imag() - res_tmp22(0, j).imag(), 2)));
+//		}
+//		for (int j = 8; j < 16; j++)
+//		{
+//			sum1 += exp(-1 / pow(sigma, 2)*abs(pow(a2.imag() - res_tmp22(0, j).imag(), 2)));
+//		}
+//		llr2(2 * i + 1, 1) = log(sum1 / sum0);
+//
+//	}*/
+//	//
+//	//
+//	//
+//	llr = llr1;
+//	for (int i = 0; i < llr.rows(); i++)
+//	{
+//		res(i, 0) = llr(i, 0) >= 0 ? 1 : 0;
+//		res(i, 1) = llr(i, 1) >= 0 ? 1 : 0;
+//	}
+//	
+//	//cout << res << endl;
+//	return res;
+//}
+MatrixXd Demapping::dp_llr_qpsk(Matrix<complex<double>, Dynamic, Dynamic> Rx_sig, Matrix<complex<double>, Dynamic, Dynamic> A, double sigma, int bits)
+{
+	MatrixXd res(Rx_sig.rows() * 2, 2);
+	MatrixXd llr1(Rx_sig.rows() * 2, 2), llr2(Rx_sig.rows() * 2, 2), llr(Rx_sig.rows() * 2, 2);
+	Matrix<complex<double>, Dynamic, Dynamic> bit11_qpsk(2, 16), bit12_qpsk(2, 16), bit21_qpsk(2, 16), bit22_qpsk(2, 16);
+	complex<double> c1(-1, -1), c2(-1, 1), c3(1, -1), c4(1, 1);
+	bit11_qpsk << c1, c1, c1, c1, c2, c2, c2, c2, c3, c3, c3, c3, c4, c4, c4, c4,
+		c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4;
+	bit12_qpsk << c1, c1, c1, c1, c3, c3, c3, c3, c2, c2, c2, c2, c4, c4, c4, c4,
+		c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4;
+	bit21_qpsk << c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4,
+		c1, c1, c1, c1, c2, c2, c2, c2, c3, c3, c3, c3, c4, c4, c4, c4;
+	bit22_qpsk << c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4,
+		c1, c1, c1, c1, c3, c3, c3, c3, c2, c2, c2, c2, c4, c4, c4, c4;
+	Matrix<complex<double>, Dynamic, Dynamic> res_tmp11 = A*bit11_qpsk;
+	Matrix<complex<double>, Dynamic, Dynamic> res_tmp12 = A*bit12_qpsk;
+	Matrix<complex<double>, Dynamic, Dynamic> res_tmp21 = A*bit21_qpsk;
+	Matrix<complex<double>, Dynamic, Dynamic> res_tmp22 = A*bit22_qpsk;
+	for (int i = 0; i < Rx_sig.rows(); i++)
+	{
+		complex<double> a1 = Rx_sig(i, 0);
+		complex<double> a2 = Rx_sig(i, 1);
+		//==========
+		//LLR1
+		//==========
+		double sum1 = 0, sum0 = 0,min=MAX_VALUE;
+		for (int j = 0; j < 8; j++)
+		{
+			double tmp_s = abs(pow(a1.real() - res_tmp11(0, j).real(), 2) + pow(a1.imag() - res_tmp11(0, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum0 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		min = MAX_VALUE;
+		for (int j = 8; j < 16; j++)
+		{
+			double tmp_s= abs(pow(a1.real() - res_tmp11(0, j).real(), 2) + pow(a1.imag() - res_tmp11(0, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum1 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		llr1(2 * i, 0) = 1/sigma*(sum0-sum1);
+		sum1 = 0;
+		sum0 = 0;
+		min = MAX_VALUE;
+		for (int j = 0; j < 8; j++)
+		{
+			double tmp_s = abs(pow(a1.real() - res_tmp12(0, j).real(), 2) + pow(a1.imag() - res_tmp12(0, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum0 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		min = MAX_VALUE;
+		for (int j = 8; j < 16; j++)
+		{
+			double tmp_s = abs(pow(a1.real() - res_tmp12(0, j).real(), 2) + pow(a1.imag() - res_tmp12(0, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum1 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		llr1(2 * i + 1, 0) = 1 / sigma*(sum0 - sum1);
+		sum1 = 0;
+		sum0 = 0;
+		min = MAX_VALUE;
+		for (int j = 0; j < 8; j++)
+		{
+			double tmp_s = abs(pow(a1.real() - res_tmp21(0, j).real(), 2) + pow(a1.imag() - res_tmp21(0, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum0 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		min = MAX_VALUE;
+		for (int j = 8; j < 16; j++)
+		{
+			double tmp_s = abs(pow(a1.real() - res_tmp21(0, j).real(), 2) + pow(a1.imag() - res_tmp21(0, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum1 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		llr1(2 * i , 1) = 1 / sigma*(sum0 - sum1);
+		sum1 = 0;
+		sum0 = 0;
+		min = MAX_VALUE;
+		for (int j = 0; j < 8; j++)
+		{
+			double tmp_s = abs(pow(a1.real() - res_tmp22(0, j).real(), 2) + pow(a1.imag() - res_tmp22(0, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum0 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		min = MAX_VALUE;
+		for (int j = 8; j < 16; j++)
+		{
+			double tmp_s = abs(pow(a1.real() - res_tmp22(0, j).real(), 2) + pow(a1.imag() - res_tmp22(0, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum1 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		llr1(2 * i + 1, 1) = 1 / sigma*(sum0 - sum1);
+
+		//======
+		//LLR2
+		//======
+		sum1 = 0;
+		sum0 = 0;
+		min = MAX_VALUE;
+		for (int j = 0; j < 8; j++)
+		{
+			double tmp_s =abs(pow(a2.real() - res_tmp11(1, j).real(), 2) + pow(a2.imag() - res_tmp11(1, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum0 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		min = MAX_VALUE;
+		for (int j = 8; j < 16; j++)
+		{
+			double tmp_s = abs(pow(a2.real() - res_tmp11(1, j).real(), 2) + pow(a2.imag() - res_tmp11(1, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum1 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		llr2(2 * i, 0) = 1 / sigma*(sum0 - sum1);
+		sum1 = 0;
+		sum0 = 0;
+		min = MAX_VALUE;
+		for (int j = 0; j < 8; j++)
+		{
+			double tmp_s = abs(pow(a2.real() - res_tmp12(1, j).real(), 2) + pow(a2.imag() - res_tmp12(1, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum0 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		min = MAX_VALUE;
+		for (int j = 8; j < 16; j++)
+		{
+			double tmp_s = abs(pow(a2.real() - res_tmp12(1, j).real(), 2) + pow(a2.imag() - res_tmp12(1, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum1 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		llr2(2 * i + 1, 0) = 1 / sigma*(sum0 - sum1);
+		sum1 = 0;
+		sum0 = 0;
+		min = MAX_VALUE;
+		for (int j = 0; j < 8; j++)
+		{
+			double tmp_s = abs(pow(a2.real() - res_tmp21(1, j).real(), 2) + pow(a2.imag() - res_tmp21(1, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum0 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		min = MAX_VALUE;
+		for (int j = 8; j < 16; j++)
+		{
+			double tmp_s = abs(pow(a2.real() - res_tmp21(1, j).real(), 2) + pow(a2.imag() - res_tmp21(1, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum1 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		llr2(2 * i, 1) = 1 / sigma*(sum0 - sum1);
+		sum1 = 0;
+		sum0 = 0;
+		min = MAX_VALUE;
+		for (int j = 0; j < 8; j++)
+		{
+			double tmp_s = abs(pow(a2.real() - res_tmp22(1, j).real(), 2) + pow(a2.imag() - res_tmp22(1, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum0 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		min = MAX_VALUE;
+		for (int j = 8; j < 16; j++)
+		{
+			double tmp_s = abs(pow(a2.real() - res_tmp22(1, j).real(), 2) + pow(a2.imag() - res_tmp22(1, j).imag(), 2));
+			if (tmp_s < min)
+			{
+				sum1 = tmp_s;
+				min = tmp_s;
+			}
+		}
+		llr2(2 * i + 1, 1) = 1 / sigma*(sum0 - sum1);
+
+	}
+	//
+	//
+	//
+	llr = llr1+llr2;
+	for (int i = 0; i < llr.rows(); i++)
+	{
+		res(i, 0) = llr(i, 0) >= 0 ? 1 : 0;
+		res(i, 1) = llr(i, 1) >= 0 ? 1 : 0;
+	}
+
+	//cout << res << endl;
+	return res;
+}
+
+//MatrixXd Demapping::dp_pnc_qpsk(Matrix<complex<double>, Dynamic, Dynamic> Rx_sig, MatrixXi A)
+//{
+//	MatrixXd res(Rx_sig.rows() * 2, 2);
+//	VectorXd s1xors2(Rx_sig.rows() * 2);
+//	VectorXd s1(Rx_sig.rows() * 2);
+//	VectorXd s2(Rx_sig.rows() * 2);
+//	MatrixXd bit(4, 16);
+//	MatrixXd s1xors2bit(2, 16);
+//	Matrix<complex<double>, Dynamic, Dynamic> bit_bpsk(2, 16);
+//	bit << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+//		   0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0,
+//		   0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0,
+//		   0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0;
+//	s1xors2bit << 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0,
+//		          0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0;
+//	complex<double> c1(-1, -1), c2(-1, 1), c3(1, -1), c4(1, 1);
+//	bit_bpsk << c1, c1, c1, c1, c2, c2, c2, c2, c3, c3, c3, c3, c4, c4, c4, c4,
+//		c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4, c1, c2, c3, c4;
+//
+//	Matrix<complex<double>, Dynamic, Dynamic> A_temp(2, 2);
+//	A_temp << A(0, 0), A(0, 1),
+//		A(1, 0), A(1, 1);
+//	Matrix<complex<double>, Dynamic, Dynamic> res_tmp = A_temp*bit_bpsk;
+//	return res;
+//}
+
+

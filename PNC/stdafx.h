@@ -11,6 +11,7 @@
 #include <tchar.h>
 #include <Eigen\Dense>
 #include <math.h>
+#include <cmath>
 #include <limits.h>
 #include <fstream>
 #include <complex>
@@ -22,6 +23,7 @@ using namespace std;
 #define CoMP  0
 #define PNC 1
 #define nidealCoMP 2
+#define llrCoMP 3
 #define BPSK 0
 #define QPSK 1
 #define		MAX_VALUE		9e100

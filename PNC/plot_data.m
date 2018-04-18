@@ -26,6 +26,7 @@ semilogy(X1,Y1,'-ob');
 hold on;
 semilogy(X2,Y2,'-^r');
 semilogy(X3,Y3,'-xg');
-semilogy(X4,Y4,'-s');
+%semilogy(X4,Y4,'-s');
 legend('idealCoMP','4bit nonidealCoMP','8bit nonidealCoMP','PNC')
+xlabel('E_b/N_0(dB)')
 grid on;

@@ -9,6 +9,7 @@
 int main()
 {
 	//srand((unsigned int)time(NULL));
+	srand(20180418);
 	ofstream log;
 	int type =nidealCoMP;
 	int modtype = QPSK;
@@ -29,8 +30,8 @@ int main()
 	
 	double relaytime=4.0;
 	double frametime = 1.0;
-	int block_num = 10000;
-	int msg_len = 100;
+	int block_num = 100;
+	int msg_len = 10000;
 	double Es = 1;
 	int total_bit = 0;
 	int error = 0;
@@ -51,27 +52,29 @@ int main()
 	VectorXd sigma2 = N0 / 2;
 	VectorXd sigma = sigma2.array().sqrt();
 	VectorXi msg_u1(msg_len), msg_u2(msg_len);
-	MatrixXi A(2, 2);
-
-	A << 1, 1,
-		0, 1;
+	Matrix<complex<double>, Dynamic, Dynamic> A;
+	A = channel.CreatH();
+	/*A << 1, 1,
+		0, 1;*/
 	cout << "#EsN0dB       #err         SER" << endl;
+	
+	cout << A << endl;
 	ostringstream oss;
 	oss << "nidealcomp_result" << qtbits << "_ber.txt";
-	switch (type)
-	{
-	case CoMP:
-		log.open("comp_result_ber.txt", ios::trunc | ios::out);
-		break;
-	case nidealCoMP:
-		log.open(oss.str(), ios::trunc | ios::out);
-		break;
-	case PNC:
-		log.open("pnc_result_ber.txt", ios::trunc | ios::out);
-		break;
-	default:
-		break;
-	}
+	//switch (type)
+	//{
+	//case CoMP:
+	//	log.open("comp_result_ber.txt", ios::trunc | ios::out);
+	//	break;
+	//case nidealCoMP:
+	//	log.open(oss.str(), ios::trunc | ios::out);
+	//	break;
+	//case PNC:
+	//	log.open("pnc_result_ber.txt", ios::trunc | ios::out);
+	//	break;
+	//default:
+	//	break;
+	//}
 	//cout << "#EsN0dB       #err         THROUGHPUT" << endl;
 	//cout << sigma << endl;
 	//log << "#EsN0dB     SER" << endl;
@@ -89,6 +92,12 @@ int main()
 	default:
 		break;
 	}
+	
+	//for (int k = 0; k <block_num; k++)
+	//{
+	//	A[k]= channel.CreatH();
+	//	cout << A[k] << endl;
+	//}
 	for (int k = 0; k < EsN0dB.size(); k++)
 	{
 		error = 0;
@@ -96,9 +105,11 @@ int main()
 		recivebit = 0;
 		for (int i = 0; i < block_num; i++)
 		{
+		
 			//======================================
 			// generate message bits
 			//======================================
+			
 			VectorXd msg_u1_tmp = VectorXd::Random(msg_len) + VectorXd::Constant(msg_len, 1.0);
 			VectorXd msg_u2_tmp = VectorXd::Random(msg_len) + VectorXd::Constant(msg_len, 1.0);
 			for (int j = 0; j< msg_len; j++)
@@ -157,7 +168,24 @@ int main()
 					break;
 				case QPSK:
 					qt_rx= qt.quantize(Rx_sig,qtbits,2.0,-2.0);
+					//A = qt.quantizeH(A,4);
+					//cout << A << endl;
 					res = dp.dp_comp_qpsk(qt_rx, A);
+					break;
+				default:
+					break;
+				}
+			}
+			else if (type == llrCoMP)
+			{
+				switch (modtype)
+				{
+				case BPSK:
+					//res = dp.dp_pnc_bpsk(Rx_sig);
+					break;
+				case QPSK:
+					
+					res = dp.dp_llr_qpsk(Rx_sig, A, sigma(k), 8);
 					break;
 				default:
 					break;
@@ -177,12 +205,12 @@ int main()
 					break;
 				}
 			}
-			//cout << msg_u1 << endl;
-			//cout << "--------------" << endl;
-			//cout << msg_u2 << endl;
-			//cout << "--------------" << endl;
-			//cout << res << endl;
-			
+			/*cout << msg_u1 << endl;
+			cout << "--------------" << endl;
+			cout << msg_u2 << endl;
+			cout << "--------------" << endl;
+			cout << res << endl;
+			*/
 			VectorXd res_u1 = res.col(0);
 			VectorXd res_u2 = res.col(1);
 			
@@ -207,7 +235,7 @@ int main()
 			//cout << error << endl;
 		}		
 		std::printf(" %3i        %6i      %1.3e\n", EsN0dB(k), error, ((double)error) / total_bit);
-		log << EsN0dB(k)<<"        " << ((double)error) / total_bit << endl;
+		//log << EsN0dB(k)<<"        " << ((double)error) / total_bit << endl;
 		//std::printf(" %3i        %6i      %1.3e\n", EsN0dB(k), error, ((double)recivebit) / (frametime+relaytime)/ block_num);
 		//log << EsN0dB(k) << "        " << ((double)recivebit) / (frametime + relaytime)/ block_num << endl;
 	}
