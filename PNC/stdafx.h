@@ -27,3 +27,5 @@ using namespace std;
 #define BPSK 0
 #define QPSK 1
 #define		MAX_VALUE		9e100
+#define		MIN_VALUE		-9e100
+#define PI 3.1415926

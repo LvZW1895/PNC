@@ -9,9 +9,9 @@
 int main()
 {
 	//srand((unsigned int)time(NULL));
-	srand(20180418);
+	srand(20180420);
 	ofstream log;
-	int type =nidealCoMP;
+	int type =PNC;
 	int modtype = QPSK;
 	/*switch (type)
 	{
@@ -36,7 +36,7 @@ int main()
 	int total_bit = 0;
 	int error = 0;
 	int recivebit = 0;
-	int qtbits = 4;
+	int qtbits = 2;
 	Modulation mod;
 	Channel channel;
 	Quantizer qt;
@@ -61,20 +61,25 @@ int main()
 	cout << A << endl;
 	ostringstream oss;
 	oss << "nidealcomp_result" << qtbits << "_ber.txt";
-	//switch (type)
-	//{
-	//case CoMP:
-	//	log.open("comp_result_ber.txt", ios::trunc | ios::out);
-	//	break;
-	//case nidealCoMP:
-	//	log.open(oss.str(), ios::trunc | ios::out);
-	//	break;
-	//case PNC:
-	//	log.open("pnc_result_ber.txt", ios::trunc | ios::out);
-	//	break;
-	//default:
-	//	break;
-	//}
+	ostringstream oss1;
+	oss1 << "llrcomp_result" << qtbits << "_ber.txt";
+	switch (type)
+	{
+	case CoMP:
+		log.open("comp_result_ber.txt", ios::trunc | ios::out);
+		break;
+	case nidealCoMP:
+		log.open(oss.str(), ios::trunc | ios::out);
+		break;
+	case llrCoMP:
+		log.open(oss1.str(), ios::trunc | ios::out);
+		break;
+	case PNC:
+		log.open("pnc_result_ber.txt", ios::trunc | ios::out);
+		break;
+	default:
+		break;
+	}
 	//cout << "#EsN0dB       #err         THROUGHPUT" << endl;
 	//cout << sigma << endl;
 	//log << "#EsN0dB     SER" << endl;
@@ -105,7 +110,7 @@ int main()
 		recivebit = 0;
 		for (int i = 0; i < block_num; i++)
 		{
-		
+			//A = channel.CreatH();
 			//======================================
 			// generate message bits
 			//======================================
@@ -183,9 +188,8 @@ int main()
 				case BPSK:
 					//res = dp.dp_pnc_bpsk(Rx_sig);
 					break;
-				case QPSK:
-					
-					res = dp.dp_llr_qpsk(Rx_sig, A, sigma(k), 8);
+				case QPSK:	
+					res = dp.dp_llr_qpsk(Rx_sig, A, sigma(k),qtbits);
 					break;
 				default:
 					break;
@@ -199,7 +203,7 @@ int main()
 					//res = dp.dp_pnc_bpsk(Rx_sig);
 					break;
 				case QPSK:
-					  res = dp.dp_pnc_qpsk(Rx_sig);
+					  res = dp.dp_pnc_qpsk(Rx_sig,A);
 					  break;
 				default:
 					break;
@@ -209,8 +213,8 @@ int main()
 			cout << "--------------" << endl;
 			cout << msg_u2 << endl;
 			cout << "--------------" << endl;
-			cout << res << endl;
-			*/
+			cout << res << endl;*/
+			
 			VectorXd res_u1 = res.col(0);
 			VectorXd res_u2 = res.col(1);
 			
@@ -230,12 +234,13 @@ int main()
 					
 			}
 			total_bit += 2 * msg_len;
-			recivebit = total_bit - error;
+			//recivebit = total_bit - error;
 			//cout << "--------------" << endl;
 			//cout << error << endl;
 		}		
+		
 		std::printf(" %3i        %6i      %1.3e\n", EsN0dB(k), error, ((double)error) / total_bit);
-		//log << EsN0dB(k)<<"        " << ((double)error) / total_bit << endl;
+	    log << EsN0dB(k)<<"        " << ((double)error) / total_bit << endl;
 		//std::printf(" %3i        %6i      %1.3e\n", EsN0dB(k), error, ((double)recivebit) / (frametime+relaytime)/ block_num);
 		//log << EsN0dB(k) << "        " << ((double)recivebit) / (frametime + relaytime)/ block_num << endl;
 	}

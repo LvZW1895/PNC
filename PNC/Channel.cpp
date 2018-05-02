@@ -52,10 +52,10 @@ Matrix<complex<double>, Dynamic, Dynamic> Channel::AWGN(double sigma, Matrix<com
 	Matrix<complex<double>, Dynamic, Dynamic> temp1(Tx_sig1.rows(), Tx_sig1.cols()), temp2(Tx_sig2.rows(), Tx_sig2.cols());
 	for (int i = 0; i < Tx_sig1.rows(); i++)
 	{
-		double n11 = sqrt(2) / 2 * sigma * sqrt(-2.0 * log(RandFloat())) * cos(6.283185307 * RandFloat());
-		double n12 = sqrt(2) / 2 * sigma * sqrt(-2.0 * log(RandFloat())) * cos(6.283185307 * RandFloat());
-		double n21 = sqrt(2) / 2 * sigma * sqrt(-2.0 * log(RandFloat())) * cos(6.283185307 * RandFloat());
-		double n22 = sqrt(2) / 2 * sigma * sqrt(-2.0 * log(RandFloat())) * cos(6.283185307 * RandFloat());
+		double n11 =  sigma * sqrt(-2.0 * log(RandFloat())) * cos(6.283185307 * RandFloat());
+		double n12 =  sigma * sqrt(-2.0 * log(RandFloat())) * cos(6.283185307 * RandFloat());
+		double n21 =  sigma * sqrt(-2.0 * log(RandFloat())) * cos(6.283185307 * RandFloat());
+		double n22 =  sigma * sqrt(-2.0 * log(RandFloat())) * cos(6.283185307 * RandFloat());
 		complex<double> n0_tmp(n11, n12), n1_tmp(n21, n22);
 		noise(i, 0) = n0_tmp;
 		noise(i, 1) = n1_tmp;
